@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 graph-generators = "0.1.0"
 rand = "0.8.5" 
+optlib-testfunc = "0.1.0"
