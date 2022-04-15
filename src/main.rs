@@ -88,22 +88,18 @@ fn _get_best_neighbor(particles: &Vec<Particle>, id: usize) -> Vec<f64>{
     gbest
 }
 
-fn _single_update(mut particles: Vec<Particle>, id: usize, constroction_coef: f64, nostalgia_coef: f64, social_coef: f64, target_function: fn(&Vec<f64>) -> f64) -> Vec<Particle>{
+fn _single_update(mut particles: Vec<Particle>, id: usize, constriction_coef: f64, nostalgia_coef: f64, social_coef: f64, target_function: fn(&Vec<f64>) -> f64) -> Vec<Particle>{
     let n_dim = particles[id].position.len();
-    let mut new_velocity: Vec<f64> = Vec::with_capacity(n_dim);
-    let mut new_position: Vec<f64> = Vec::with_capacity(n_dim);
     let mut rng: ThreadRng = rand::thread_rng();
-    let c1: f64 = rng.gen::<f64>();
-    let c2: f64 = rng.gen::<f64>();
-    let gbest = _get_best_neighbor(&particles, id);
+    let c1: f64 = rng.gen::<f64>() * nostalgia_coef;
+    let c2: f64 = rng.gen::<f64>() * social_coef;
+    let gbest: Vec<f64> = _get_best_neighbor(&particles, id);
     for d in 0..n_dim{
-        let nostalgia: f64 = nostalgia_coef * c1 * (particles[id].best_position[d] - particles[id].position[d]);
-        let social: f64 = social_coef * c2 *(gbest[d] - particles[id].position[d]);
-        new_velocity.push(constroction_coef * (particles[id].velocity[d] + nostalgia + social));
-        new_position.push(particles[id].position[d] + new_velocity[d]);
+        let nostalgia: f64 = c1 * (particles[id].best_position[d] - particles[id].position[d]);
+        let social: f64 = c2 * (gbest[d] - particles[id].position[d]);
+        particles[id].velocity[d] = constriction_coef * (particles[id].velocity[d] + nostalgia + social);
+        particles[id].position[d] += particles[id].velocity[d];
     }
-    particles[id].velocity = new_velocity;
-    particles[id].position = new_position;
     _update_best(particles, id, target_function)
 }
 
@@ -121,22 +117,22 @@ fn _get_gbest(particles: &Vec<Particle>) -> (f64, Vec<f64>){
 
 fn main() {
     let n_iter: usize = 5000;
-    let n_particles: usize = 10;
-    let n_dim: usize = 5;
+    let n_particles: usize = 50;    
+    let n_dim: usize = 30;
     let bounds: Vec<(f64, f64)> = vec![(-30.0, 30.0); n_dim];
 
-    let mut particles = initialize_particles(n_particles, bounds, optlib_testfunc::rosenbrock);
-    println!("{:#?}", particles[0]);
-    println!("{:#?}", _get_best_neighbor(&particles, 0));
-    particles = _single_update(particles, 0, 0.7298, 2.05, 2.05, optlib_testfunc::rosenbrock);
-    println!("{:#?}", particles[0]);
-    // for iter in 0..n_iter{
-    //     for i in 0..n_particles{
-    //         particles = _single_update(particles, i, 0.7298, 2.05, 2.05, optlib_testfunc::rosenbrock);
-    //     }
-    //     if iter%100 == 0{
-    //         println!("{:#?}", _get_gbest(&particles).0);
-    //     } 
-    // }
-    // println!("{:#?}", _get_gbest(&particles));
+    let mut particles = initialize_particles(n_particles, bounds, optlib_testfunc::rastrigin);
+    // println!("{:#?}", particles[0]);
+    // println!("{:#?}", _get_best_neighbor(&particles, 0));
+    // particles = _single_update(particles, 0, 0.7298, 2.05, 2.05, optlib_testfunc::rosenbrock);
+    // println!("{:#?}", particles[0]);
+    for iter in 0..n_iter{
+        for i in 0..n_particles{
+            particles = _single_update(particles, i, 0.7298, 2.05, 2.05, optlib_testfunc::rastrigin);
+        }
+        if iter%100 == 0{
+            println!("Iter {}: {:#?}", iter, _get_gbest(&particles).0);
+        } 
+    }
+    println!("{:#?}", _get_gbest(&particles));
 }
