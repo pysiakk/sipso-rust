@@ -1,4 +1,4 @@
-use rand::{Rng, prelude::ThreadRng};
+use rand::{Rng, prelude::ThreadRng, seq::SliceRandom};
 
 #[derive(Debug)]
 struct Particle{
@@ -32,11 +32,44 @@ fn initialize_particles(n_particles: usize, bounds: Vec<(f64, f64)>, target_func
             }
         );
     };
+    particles
+}
+
+fn _neigh_full(mut particles: Vec<Particle>) -> Vec<Particle>{
+    let n_particles: usize = particles.len();
     for i in 0..n_particles{
         for j in 0..n_particles{
             if i != j{
                 particles[i].neighbors.push(j);
             }
+        }
+    }
+    particles
+}
+
+fn _neigh_ba(mut particles: Vec<Particle>, m: usize, m0: usize) -> Vec<Particle>{
+    let n_particles: usize = particles.len();
+    let mut repeated: Vec<usize> = Vec::new();
+    let mut m0 = m0;
+    if n_particles < m0{
+        m0 = n_particles;
+    }
+    for i in 0..m0{
+        for j in 0..m0{
+            if j != i{
+                particles[i].neighbors.push(j);
+                repeated.push(j)
+            }
+        }
+    }
+    let mut rng = rand::thread_rng();
+    for i in m0..n_particles{
+        let choice: Vec<usize> = repeated.choose_multiple(&mut rng, m).cloned().collect();
+        for sample in choice{
+            particles[i].neighbors.push(sample);
+            particles[sample].neighbors.push(i);
+            repeated.push(i);
+            repeated.push(sample);
         }
     }
     particles
@@ -122,6 +155,7 @@ fn main() {
     let bounds: Vec<(f64, f64)> = vec![(-30.0, 30.0); n_dim];
 
     let mut particles = initialize_particles(n_particles, bounds, optlib_testfunc::rastrigin);
+    particles = _neigh_ba(particles, 2, 4);
     // println!("{:#?}", particles[0]);
     // println!("{:#?}", _get_best_neighbor(&particles, 0));
     // particles = _single_update(particles, 0, 0.7298, 2.05, 2.05, optlib_testfunc::rosenbrock);
