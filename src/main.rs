@@ -1,5 +1,5 @@
 use rand::{Rng, prelude::ThreadRng, seq::SliceRandom};
-
+use optlib_testfunc::*;
 #[derive(Debug)]
 struct Particle{
     position: Vec<f64>,
@@ -148,25 +148,66 @@ fn _get_gbest(particles: &Vec<Particle>) -> (f64, Vec<f64>){
     (gbest_score, gbest)
 }
 
+fn run_pso(
+    n_iter: usize, n_particles: usize, bounds: Vec<(f64, f64)>, target_function: fn(&Vec<f64>) -> f64, k: usize,
+    constriction_coef: f64, nostalgia_coef: f64, social_coef: f64, neighborhood: &str, verbose: usize) -> (f64, Vec<f64>){
+    
+        let mut particles = initialize_particles(n_particles, bounds, target_function);
+        if neighborhood == "ba" {
+            particles = _neigh_ba(particles, 2, 4);
+        } else if neighborhood == "full" {
+            particles = _neigh_full(particles);            
+        }
+        for iter in 0..n_iter{
+            for i in 0..n_particles{
+                if particles[i].neighbors.len() > k{
+                    particles = _full_update(particles, i, constriction_coef, nostalgia_coef + social_coef, target_function)
+                } else {
+                    particles = _single_update(particles, i, constriction_coef, nostalgia_coef, social_coef, target_function);
+                }
+            }
+            if verbose == 2 && iter%100 == 0{
+                println!("Iter {}: {:#?}", iter, _get_gbest(&particles).0);
+            } 
+        }
+        if verbose == 1 || verbose == 2{
+            println!("Neigh: {} | k: {} | score: {}", neighborhood, k, _get_gbest(&particles).0);
+        }
+        _get_gbest(&particles)
+}
 fn main() {
     let n_iter: usize = 5000;
     let n_particles: usize = 50;    
     let n_dim: usize = 30;
-    let bounds: Vec<(f64, f64)> = vec![(-30.0, 30.0); n_dim];
-
-    let mut particles = initialize_particles(n_particles, bounds, optlib_testfunc::rastrigin);
-    particles = _neigh_ba(particles, 2, 4);
-    // println!("{:#?}", particles[0]);
-    // println!("{:#?}", _get_best_neighbor(&particles, 0));
-    // particles = _single_update(particles, 0, 0.7298, 2.05, 2.05, optlib_testfunc::rosenbrock);
-    // println!("{:#?}", particles[0]);
-    for iter in 0..n_iter{
-        for i in 0..n_particles{
-            particles = _single_update(particles, i, 0.7298, 2.05, 2.05, optlib_testfunc::rastrigin);
-        }
-        if iter%100 == 0{
-            println!("Iter {}: {:#?}", iter, _get_gbest(&particles).0);
-        } 
-    }
-    println!("{:#?}", _get_gbest(&particles));
+    let rastrigin_bounds: Vec<(f64, f64)> = vec![(-5.12, 5.12); n_dim];
+    let rosenbrock_bounds: Vec<(f64, f64)> = vec![(-30.0, 30.0); n_dim];
+    let k: usize = 5;
+    let target_function: fn(&Vec<f64>) -> f64 = optlib_testfunc::rastrigin;
+    let constriction_coef: f64 = 0.7298;
+    let nostalgia_coef: f64 = 2.05;
+    let social_coef: f64 = 2.05;
+    let verbose: usize = 1;
+    
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 0, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 5, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 50, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    
+    run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 0, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 5, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 50, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 0, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 5, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 50, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    
+    run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 0, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 5, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 50, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    // let mut particles = initialize_particles(n_particles, bounds, target_function);
+    // particles = _neigh_ba(particles, 2, 4);
+    // let mut degree: Vec<usize> = Vec::new();
+    // for particle in particles.iter() {
+    //     degree.push(particle.neighbors.len());
+    // }
+    // println!("{:#?}", degree);
 }
