@@ -181,15 +181,15 @@ fn main() {
     let n_dim: usize = 30;
     let rastrigin_bounds: Vec<(f64, f64)> = vec![(-5.12, 5.12); n_dim];
     let rosenbrock_bounds: Vec<(f64, f64)> = vec![(-30.0, 30.0); n_dim];
-    let k: usize = 5;
-    let target_function: fn(&Vec<f64>) -> f64 = optlib_testfunc::rastrigin;
+    let _k: usize = 5;
+    let _target_function: fn(&Vec<f64>) -> f64 = optlib_testfunc::rastrigin;
     let constriction_coef: f64 = 0.7298;
     let nostalgia_coef: f64 = 2.05;
     let social_coef: f64 = 2.05;
     let verbose: usize = 1;
     
     run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 0, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
-    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 5, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 2, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
     run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 50, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
     
     run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 0, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
@@ -197,7 +197,7 @@ fn main() {
     run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 50, constriction_coef, nostalgia_coef, social_coef, "ba", verbose);
     
     run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 0, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
-    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 5, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
+    run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 2, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
     run_pso(n_iter, n_particles, rastrigin_bounds.clone(), rastrigin, 50, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
     
     run_pso(n_iter, n_particles, rosenbrock_bounds.clone(), rosenbrock, 0, constriction_coef, nostalgia_coef, social_coef, "full", verbose);
